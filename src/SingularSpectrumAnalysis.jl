@@ -122,8 +122,8 @@ function hsvd(y,L)
 end
 
 """
-    yr = reconstruct(USV::SVD, trends, seasonal::AbstractArray)
-    yr = reconstruct(USV::SVD, groupings::AbstractArray)
+    yrt,yrs = reconstruct(USV::SVD, trends, seasonal::AbstractArray)
+    yr      = reconstruct(USV::SVD, groupings::AbstractArray)
 Compute a reconstruction of the time-series based on an SVD object obtained from `hsvd` and user selected groupings. See also `?SingularSpectrumAnalysis`
 """
 function reconstruct(USV::Base.LinAlg.SVD, trends, seasonal::AbstractArray)
