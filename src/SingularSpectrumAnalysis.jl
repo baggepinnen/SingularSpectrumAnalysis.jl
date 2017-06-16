@@ -50,12 +50,12 @@ pairplot(USV,seasonal_groupings)
 """
 function pairplot(USV, groupings::AbstractArray)
     M = length(groupings)
-    f = plot(layout=M)
+    f = Plots.plot(layout=M)
     for m = 1:M
         i = groupings[m]
         @assert length(i) == 2 "pairplot: All groupings have to be pairs"
         elements = USV.U[:,i].*sqrt(USV.S[i])'
-        plot!(elements[:,1], elements[:,2],subplot=m)
+        Plots.plot!(elements[:,1], elements[:,2],subplot=m)
     end
     f
 end
