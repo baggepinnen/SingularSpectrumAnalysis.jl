@@ -1,4 +1,7 @@
 # SingularSpectrumAnalysis
+[![SingularSpectrumAnalysis](http://pkg.julialang.org/badges/SingularSpectrumAnalysis_0.5.svg)](http://pkg.julialang.org/detail/SingularSpectrumAnalysis)
+[![SingularSpectrumAnalysis](http://pkg.julialang.org/badges/SingularSpectrumAnalysis_0.6.svg)](http://pkg.julialang.org/detail/SingularSpectrumAnalysis)
+[![Build Status](https://travis-ci.org/baggepinnen/SingularSpectrumAnalysis.jl.svg?branch=master)](https://travis-ci.org/baggepinnen/SingularSpectrumAnalysis.jl)
 A package for performing Singular Spectrum Analysis (SSA) https://en.wikipedia.org/wiki/Singular_spectrum_analysis
 
 ## Simple Usage
