@@ -15,8 +15,8 @@ K = 100
 N = K*L; # number of datapoints
 t = 1:N; # Time vector
 T = 20; # period of main oscillation
-y = sin(2pi/T*t); # Signal
-y .+= (0.5sin(2pi/T*4*t)).^2 # Add another frequency
+y = sin.(2pi/T*t); # Signal
+y .+= (0.5sin.(2pi/T*4*t)).^2 # Add another frequency
 e = 0.1randn(N); # Add some noise
 ys = y+e;
 # plot(ys)
@@ -25,6 +25,10 @@ USV = hsvd(ys,L) # Perform svd on the trajectory matrix
 sigmaplot(USV) # Plot normalized singular values
 # logsigmaplot(USV) # Plot singular values
 # cumsigmaplot(USV) # Plot cumulative normalized singular values
+```
+![window](figs/sigmaplot.svg)
+
+```julia
 seasonal_groupings = [1:2, 4:5] # Determine pairs of singular values corresponding to seasonal components
 trends = 3 # If some singular value lacks a buddy, this is a trend component
 pairplot(USV,seasonal_groupings) # plot phase plots for all seasonal components
