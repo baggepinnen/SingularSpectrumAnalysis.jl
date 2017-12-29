@@ -9,8 +9,8 @@ K = 100
 N = K*L; # number of datapoints
 t = 1:N; # Time vector
 T = 20; # period of main oscillation
-y = sin(2pi/T*t); # Signal
-y .+= (0.5sin(2pi/T*4*t)).^2 # Add another frequency
+y = sin.(2pi/T*t); # Signal
+y .+= (0.5sin.(2pi/T*4*t)).^2 # Add another frequency
 e = 0.1randn(N); # Add some noise
 ys = y+e;
 # plot(ys)
@@ -42,7 +42,7 @@ cumsigmaplot(USV) = Plots.scatter(cumsum(USV.S./sum(USV.S)), title="Cumulative S
 """
 pairplot(USV, groupings)
 Usage:
-```
+```julia
 USV = hsvd(data,L)
 seasonal_groupings = [1:2, 4:5]
 pairplot(USV,seasonal_groupings)
@@ -54,8 +54,8 @@ function pairplot(USV, groupings::AbstractArray)
     for m = 1:M
         i = groupings[m]
         @assert length(i) == 2 "pairplot: All groupings have to be pairs"
-        elements = USV.U[:,i].*sqrt(USV.S[i])'
-        Plots.plot!(elements[:,1], elements[:,2],subplot=m)
+        elements = USV.U[:,i].*sqrt.(USV.S[i])'
+        Plots.plot!(elements[:,1], elements[:,2],subplot=m, legend=false)
     end
     f
 end
@@ -84,7 +84,7 @@ end
 
 """
     Ui = elementary(USV,I)
-Computes the sum Ui*Si*Vi' for all i in I
+Computes the sum Uᵢ*Sᵢ*Vᵢ' for all i in I
 If I is 1:L, the returned matrix is identical to U*S*V'
 """
 function elementary(USV,I)
@@ -124,6 +124,7 @@ end
 """
     yrt,yrs = reconstruct(USV::SVD, trends, seasonal::AbstractArray)
     yr      = reconstruct(USV::SVD, groupings::AbstractArray)
+
 Compute a reconstruction of the time-series based on an SVD object obtained from `hsvd` and user selected groupings. See also `?SingularSpectrumAnalysis`
 """
 function reconstruct(USV::Base.LinAlg.SVD, trends, seasonal::AbstractArray)
