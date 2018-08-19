@@ -22,7 +22,7 @@ yr = sum([yrt yrs],2)
 @test sqrt(mean((y.-ys).^2)) > sqrt(mean((y.-yr).^2))
 
 
-using Plots
-sigmaplot(USV)
-logsigmaplot(USV)
-cumsigmaplot(USV)
+# using Plots
+# sigmaplot(USV)
+# logsigmaplot(USV)
+# cumsigmaplot(USV)
