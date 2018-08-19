@@ -1,2 +1,2 @@
-julia 0.5
-Requires
+julia 0.7
+Plots

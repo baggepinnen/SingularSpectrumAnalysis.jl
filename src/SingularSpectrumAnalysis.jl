@@ -29,11 +29,11 @@ plot([y ys yr], lab=["y" "ys" "yr"])
 See http://www.jds-online.com/files/JDS-396.pdf for an easy-to-read introduction to SSA
 """
 module SingularSpectrumAnalysis
-using Requires
+
 export hankel, hankelize, elementary, reconstruct, hsvd
 
-@require Plots begin
-  export sigmaplot, logsigmaplot, cumsigmaplot, pairplot
+
+export sigmaplot, logsigmaplot, cumsigmaplot, pairplot
 import Plots
 sigmaplot(USV) = Plots.scatter(USV.S./sum(USV.S), title="Normalized Singular Value Plot", ylabel="\$\\sigma / \\sum\\sigma_i\$")
 logsigmaplot(USV) = Plots.scatter(USV.S, yscale=:ln, title="Singular Value Plot", ylabel="\$\\log \\sigma\$")
@@ -59,8 +59,8 @@ function pairplot(USV, groupings::AbstractArray)
     end
     f
 end
-end
-end
+
+
 
 """
     X = hankel(x,window_size)
@@ -146,4 +146,6 @@ function reconstruct(USV::Base.LinAlg.SVD, groupings::AbstractArray)
         yr[:,m] = hankelize(X)
     end
     yr
+end
+
 end
