@@ -30,6 +30,8 @@ See http://www.jds-online.com/files/JDS-396.pdf for an easy-to-read introduction
 """
 module SingularSpectrumAnalysis
 
+using LinearAlgebra
+
 export hankel, hankelize, elementary, reconstruct, hsvd
 
 
