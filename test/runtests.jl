@@ -1,5 +1,5 @@
 using SingularSpectrumAnalysis
-using Test
+using Test, Statistics
 const SSA = SingularSpectrumAnalysis
 
 # Generate some data
@@ -18,7 +18,7 @@ USV = hsvd(ys,L)
 seasonal_groupings = [1:2, 4:5]
 trends = 3
 yrt, yrs = reconstruct(USV, trends, seasonal_groupings)
-yr = sum([yrt yrs],2)
+yr = sum([yrt yrs],dims=2)
 @test sqrt(mean((y.-ys).^2)) > sqrt(mean((y.-yr).^2))
 
 

@@ -30,7 +30,7 @@ See http://www.jds-online.com/files/JDS-396.pdf for an easy-to-read introduction
 """
 module SingularSpectrumAnalysis
 
-using LinearAlgebra
+using LinearAlgebra, Statistics
 
 export hankel, hankelize, elementary, reconstruct, hsvd
 
@@ -120,7 +120,7 @@ Form a trajectory hankel matrix from data `y` and compute svd on this Hankelmatr
 """
 function hsvd(y,L)
     X = hankel(y,L) # Form trajectory matrix
-    USV = svdfact(X)
+    USV = svd(X)
 end
 
 """
