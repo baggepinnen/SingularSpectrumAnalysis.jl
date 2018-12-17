@@ -1,5 +1,5 @@
 using SingularSpectrumAnalysis
-using Base.Test
+using Test
 const SSA = SingularSpectrumAnalysis
 
 # Generate some data
