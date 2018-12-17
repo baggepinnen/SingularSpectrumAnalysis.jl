@@ -129,7 +129,7 @@ end
 
 Compute a reconstruction of the time-series based on an SVD object obtained from `hsvd` and user selected groupings. See also `?SingularSpectrumAnalysis`
 """
-function reconstruct(USV::Base.LinAlg.SVD, trends, seasonal::AbstractArray)
+function reconstruct(USV, trends, seasonal::AbstractArray)
     if isa(trends,Number)
         trends = [trends]
     end
@@ -138,7 +138,7 @@ function reconstruct(USV::Base.LinAlg.SVD, trends, seasonal::AbstractArray)
     yrt, yrs
 end
 
-function reconstruct(USV::Base.LinAlg.SVD, groupings::AbstractArray)
+function reconstruct(USV, groupings::AbstractArray)
     M = length(groupings)
     K,L = size(USV.U)
     N = K+L-1
