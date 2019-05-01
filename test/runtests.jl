@@ -1,28 +1,38 @@
 using SingularSpectrumAnalysis
-using Test, Statistics
+using Test, Statistics, Random
 const SSA = SingularSpectrumAnalysis
 
-# Generate some data
-L = 20
-K = 100
-N = K*L;
-t = 1:N;
-T = 20;
-y = sin.(2pi/T*t);
-y .+= (0.5sin.(2pi/T*4*t)).^2
-e = 0.1randn(N);
-ys = y+e;
-# plot(ys)
+@testset "SingularSpectrumAnalysis" begin
+    Random.seed!(1)
+    # Generate some data
+    L = 20
+    K = 100
+    N = K*L;
+    t = 1:N;
+    T = 20;
+    y = sin.(2pi/T*t);
+    y .+= (0.5sin.(2pi/T*4*t)).^2
+    e = 0.1randn(N);
+    yn = y+e;
+    # plot(yn)
 
-USV = hsvd(ys,L)
-seasonal_groupings = [1:2, 4:5]
-trends = 3
-yrt, yrs = reconstruct(USV, trends, seasonal_groupings)
-yr = sum([yrt yrs],dims=2)
-@test sqrt(mean((y.-ys).^2)) > sqrt(mean((y.-yr).^2))
+    yt, ys = analyze(yn, L)
+
+    USV = hsvd(yn,L)
+
+    trend, seasonal_groupings = autogroup(USV)
+    @test trend == 3
+    @test seasonal_groupings == [1:2, 4:5]
+
+    yrt, yrs = reconstruct(USV, trend, seasonal_groupings)
+    yr = sum([yrt yrs],dims=2)
+    @test sqrt(mean((y.-yn).^2)) > sqrt(mean((y.-yr).^2))
 
 
-# using Plots
-# sigmaplot(USV)
-# logsigmaplot(USV)
-# cumsigmaplot(USV)
+    using Plots
+    plot(USV, cumulative=true)
+    plot(USV, cumulative=false)
+    pairplot(USV, seasonal_groupings)
+
+
+end

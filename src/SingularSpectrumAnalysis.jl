@@ -1,46 +1,22 @@
-"""
-SingularSpectrumAnalysis
-
-Simple Usage:
-```julia
-# generate some data
-L = 20 # Window length
-K = 100
-N = K*L; # number of datapoints
-t = 1:N; # Time vector
-T = 20; # period of main oscillation
-y = sin.(2pi/T*t); # Signal
-y .+= (0.5sin.(2pi/T*4*t)).^2 # Add another frequency
-e = 0.1randn(N); # Add some noise
-ys = y+e;
-# plot(ys)
-
-USV = hsvd(ys,L) # Perform svd on the trajectory matrix
-sigmaplot(USV) # Plot normalized singular values
-# logsigmaplot(USV) # Plot singular values
-# cumsigmaplot(USV) # Plot cumulative normalized singular values
-seasonal_groupings = [1:2, 4:5] # Determine pairs of singular values corresponding to seasonal components
-trends = 3 # If some singular value lacks a buddy, this is a trend component
-pairplot(USV,seasonal_groupings) # plot phase plots for all seasonal components
-yrt, yrs = reconstruct(USV, trends, seasonal_groupings) # Reconstruct the underlying signal without noise, based on all identified components with significant singular values
-yr = sum([yrt yrs],2) # Form full reconstruction
-plot([y ys yr], lab=["y" "ys" "yr"])
-```
-See http://www.jds-online.com/files/JDS-396.pdf for an easy-to-read introduction to SSA
-"""
 module SingularSpectrumAnalysis
 
-using LinearAlgebra, Statistics
+using LinearAlgebra, Statistics, RecipesBase
 
-export hankel, hankelize, elementary, reconstruct, hsvd
+export hankel, hankelize, elementary, reconstruct, hsvd, autogroup, analyze
+
+export sigmaplot, pairplot
+
+@recipe function sigmaplot(USV::SVD; cumulative=false)
+    seriestype := :scatter
+    title --> "Normalized Singular Value Plot"
+    ylabel --> "\$\\sigma / \\sum\\sigma_i\$"
+    S = USV.S./sum(USV.S)
+    cumulative ? cumsum(S) : S
+end
 
 
-export sigmaplot, logsigmaplot, cumsigmaplot, pairplot
-import Plots
-sigmaplot(USV) = Plots.scatter(USV.S./sum(USV.S), title="Normalized Singular Value Plot", ylabel="\$\\sigma / \\sum\\sigma_i\$")
-logsigmaplot(USV) = Plots.scatter(USV.S, yscale=:ln, title="Singular Value Plot", ylabel="\$\\log \\sigma\$")
-cumsigmaplot(USV) = Plots.scatter(cumsum(USV.S./sum(USV.S)), title="Cumulative Singular Value Plot", ylabel="\$ \\sum\\sigma_{1:i}\$")
 
+@userplot Pairplot
 """
 pairplot(USV, groupings)
 Usage:
@@ -50,16 +26,21 @@ seasonal_groupings = [1:2, 4:5]
 pairplot(USV,seasonal_groupings)
 ```
 """
-function pairplot(USV, groupings::AbstractArray)
+pairplot
+
+@recipe function pairplot(h::Pairplot)
+    USV, groupings = h.args[1:2]
     M = length(groupings)
-    f = Plots.plot(layout=M)
+    layout := M
+    legend --> false
     for m = 1:M
         i = groupings[m]
         @assert length(i) == 2 "pairplot: All groupings have to be pairs"
         elements = USV.U[:,i].*sqrt.(USV.S[i])'
-        Plots.plot!(elements[:,1], elements[:,2],subplot=m, legend=false)
+        subplot := m
+        @series elements[:,1], elements[:,2]
     end
-    f
+    nothing
 end
 
 
@@ -148,6 +129,44 @@ function reconstruct(USV, groupings::AbstractArray)
         yr[:,m] = hankelize(X)
     end
     yr
+end
+
+"""
+trend, seasonal_groupings = autogroup(USV, th = 0.95)
+Try to automatically group singular values. `th ∈ (0,1)` determins the percentage of variance to explain.
+"""
+function autogroup(USV, th = 0.95)
+    nS = USV.S .- minimum(USV.S)
+    nS ./= sum(nS)
+    cs = cumsum(nS)
+    ind = findfirst(x->x > th, cs)
+    iseven(ind) && (ind -= 1)
+    t = findtrend(nS[1:ind])
+    seasonal_groupings = UnitRange[]
+    for i = [1:2:t-1; t+1:2:ind]
+        push!(seasonal_groupings, i:i+1)
+    end
+    t, seasonal_groupings
+end
+
+function findtrend(S)
+    function eval_trend(ind)
+        iseven(ind) && return Inf
+        cost = 0.0
+        for i = [1:2:ind-1; ind+1:2:length(S)]
+            cost += S[i] - S[i+1]
+        end
+        cost
+    end
+    costs = eval_trend.(1:length(S))
+    _,ind = findmin(costs)
+    ind
+end
+
+function analyze(y,L)
+    USV = hsvd(y,L)
+    trend, seasonal_groupings = autogroup(USV)
+    reconstruct(USV, trend, seasonal_groupings)
 end
 
 end
