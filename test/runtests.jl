@@ -17,6 +17,8 @@ const SSA = SingularSpectrumAnalysis
     # plot(yn)
 
     yt, ys = analyze(yn, L)
+    A,x = fit_trend(yt, 1)
+    @test x ≈ [0.124, 0] atol=0.1
 
     USV = hsvd(yn,L)
 

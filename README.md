@@ -42,6 +42,64 @@ yr = sum([yrt yrs],2) # Form full reconstruction
 plot([y ys yr], lab=["y" "ys" "yr"])
 ```
 
+## Forecasting
+We provide the function `fit_trend(yt, order)` to fit an n:th order polynomial to the trend:
+```julia
+yt, ys = analyze(yn, L)
+A,x = fit_trend(yt, 1)
+```
+This returns the regressor matrix `A` and the polynomial coefficients `x`. This fit can be used to forecast the trend. To forecast the seasonal components, we make use of the package [ControlSystemIdentification.jl](https://github.com/baggepinnen/ControlSystemIdentification.jl) to fit AR(na) models. We create a simulated signal to test with:
+```julia
+using ControlSystemIdentification, ControlSystems, DSP, Random
+Random.seed!(0)
+L = 20
+K = 10
+N = K*L;
+t = 1:N;
+T = 20;
+y = sin.(2pi/T*t);            # Add seasons
+y .+= (0.5sin.(2pi/T*4*t)).^2 # Add seasons
+y .+= LinRange(0,1,N)         # Add trend
+e = 0.1randn(N);
+yn = y+e;                     # Add noise
+```
+Next, we use SSA to find the trend and the seasonal components
+```julia
+yt, ys = analyze(yn, L) # trend and seasons
+A,x = fit_trend(yt, 1)  # Fits a polynomial of order 1 (line)
+```
+We are now ready to estimate AR models
+```julia
+na = 2 # Autoregressive order
+# Next line fits one AR model for each seasonal component
+ns = size(ys,2) # number of seasonal components
+models = [ar(1, ys[:,i], na)[1] for i = 1:ns] # Fit one model per component
+```
+To be able to use the estimated models for prediction, we create predictor filters
+```julia
+models = ss.(models) # Convert models to state-space form
+observers = kalman.(models, Ref(I), Ref(ones(1,1))) # Create observers (Kalman filters)
+predictors = [ss(m.A-K*m.C, K, m.C, 0,1) for (m,K) in zip(models, observers)] # Create predictor filters
+seasonal_predictions = [simulate(predictors[i], ys[:,i])  for i = 1:ns]
+```
+Next, we visualize the trends and seasonal components estimated by both SSA and AR models.
+```julia
+plot(ys, layout=size(ys,2), lab="SSA", title="Estimated seasonal components")
+plot!(seasonal_predictions, lab="AR")
+```
+![window](figs/season.svg)
+```julia
+plot(yt, lab="SSA", title="Estimated trend")
+plot!(A*x, lab="Polyfit")
+```
+![window](figs/trend.svg)
+```julia
+yr = yt+sum(ys, dims=2)
+plot(yn, lab="Measured", title="Full reconstructions")
+plot!(yr, lab="SSA")
+plot!(+(A*x, seasonal_predictions...), subplot=1, lab="AR", l=(:dash,))
+```
+![window](figs/reconstruction.svg)
 ## Advanced low-level usage
 See the implementation of functions `hsvd` and `reconstruct`
 

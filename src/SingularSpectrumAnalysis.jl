@@ -2,7 +2,7 @@ module SingularSpectrumAnalysis
 
 using LinearAlgebra, Statistics, RecipesBase
 
-export hankel, hankelize, elementary, reconstruct, hsvd, autogroup, analyze
+export hankel, hankelize, elementary, reconstruct, hsvd, autogroup, analyze, fit_trend
 
 export sigmaplot, pairplot
 
@@ -116,6 +116,7 @@ function reconstruct(USV, trends, seasonal::AbstractArray)
     end
     yrt = reconstruct(USV, trends)
     yrs = reconstruct(USV, seasonal)
+    size(yrt,2) == 1 && (yrt = vec(yrt))
     yrt, yrs
 end
 
@@ -169,4 +170,15 @@ function analyze(y,L)
     reconstruct(USV, trend, seasonal_groupings)
 end
 
+"""
+A,x = fit_trend(yt::AbstractVector, order=1)
+Fit an n:th order polynomial to the trend signal `yt`
+Returns the regressor matrix `A` and the coefficients `x` with the first coefficient being the 0:th order component (mean).
+"""
+function fit_trend(yt::AbstractVector, order=1)
+    N = length(yt)
+    A = (1:N).^(0:order)'
+    x = A\yt
+    A,x
+end
 end
