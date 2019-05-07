@@ -75,12 +75,9 @@ na = 2 # Autoregressive order
 ns = size(ys,2) # number of seasonal components
 models = [ar(1, ys[:,i], na)[1] for i = 1:ns] # Fit one model per component
 ```
-To be able to use the estimated models for prediction, we create predictor filters
+We can use these models to for one-step predictions
 ```julia
-models = ss.(models) # Convert models to state-space form
-observers = kalman.(models, Ref(I), Ref(ones(1,1))) # Create observers (Kalman filters)
-predictors = [ss(m.A-K*m.C, K, m.C, 0,1) for (m,K) in zip(models, observers)] # Create predictor filters
-seasonal_predictions = [simulate(predictors[i], ys[:,i])  for i = 1:ns]
+seasonal_predictions = [predict(models[i], ys[:,i])  for i = 1:ns]
 ```
 Next, we visualize the trends and seasonal components estimated by both SSA and AR models.
 ```julia
@@ -95,9 +92,9 @@ plot!(A*x, lab="Polyfit")
 ![window](figs/trend.svg)
 ```julia
 yr = yt+sum(ys, dims=2)
-plot(yn, lab="Measured", title="Full reconstructions")
-plot!(yr, lab="SSA")
-plot!(+(A*x, seasonal_predictions...), subplot=1, lab="AR", l=(:dash,))
+plot(yn[1:end-2], lab="Measured", title="Full reconstructions")
+plot!(yr[1:end-2], lab="SSA")
+plot!(+((A*x)[1:end-2], seasonal_predictions...), subplot=1, lab="AR", l=(:dash,))
 ```
 ![window](figs/reconstruction.svg)
 ## Advanced low-level usage
