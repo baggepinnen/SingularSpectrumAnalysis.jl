@@ -35,6 +35,7 @@ const SSA = SingularSpectrumAnalysis
     plot(USV, cumulative=true)
     plot(USV, cumulative=false)
     pairplot(USV, seasonal_groupings)
-
-
+end
+@testset "forecasting" begin
+    include("../examples/forecast.jl")
 end

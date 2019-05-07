@@ -50,7 +50,7 @@ A,x = fit_trend(yt, 1)
 ```
 This returns the regressor matrix `A` and the polynomial coefficients `x`. This fit can be used to forecast the trend. To forecast the seasonal components, we make use of the package [ControlSystemIdentification.jl](https://github.com/baggepinnen/ControlSystemIdentification.jl) to fit AR(na) models. We create a simulated signal to test with:
 ```julia
-using ControlSystemIdentification, ControlSystems, DSP, Random
+using Random
 Random.seed!(0)
 L = 20
 K = 10
@@ -66,37 +66,38 @@ yn = y+e;                     # Add noise
 Next, we use SSA to find the trend and the seasonal components
 ```julia
 yt, ys = analyze(yn, L) # trend and seasons
-A,x = fit_trend(yt, 1)  # Fits a polynomial of order 1 (line)
-```
-We are now ready to estimate AR models
-```julia
-na = 2 # Autoregressive order
-# Next line fits one AR model for each seasonal component
-ns = size(ys,2) # number of seasonal components
-models = [ar(1, ys[:,i], na)[1] for i = 1:ns] # Fit one model per component
-```
-We can use these models to for one-step predictions
-```julia
-seasonal_predictions = [predict(models[i], ys[:,i])  for i = 1:ns]
+using ControlSystemIdentification
+pd  = PredictionData(yt, ys, trend_order=1, ar_order=2)
+yth = trend(pd)
+ysh = seasons(pd)
 ```
 Next, we visualize the trends and seasonal components estimated by both SSA and AR models.
 ```julia
 plot(ys, layout=size(ys,2), lab="SSA", title="Estimated seasonal components")
-plot!(seasonal_predictions, lab="AR")
+plot!(ysh, lab="AR")
 ```
 ![window](figs/season.svg)
+
 ```julia
 plot(yt, lab="SSA", title="Estimated trend")
-plot!(A*x, lab="Polyfit")
+plot!(yth, lab="Polyfit")
 ```
 ![window](figs/trend.svg)
+
 ```julia
 yr = yt+sum(ys, dims=2)
 plot(yn[1:end-2], lab="Measured", title="Full reconstructions")
 plot!(yr[1:end-2], lab="SSA")
-plot!(+((A*x)[1:end-2], seasonal_predictions...), subplot=1, lab="AR", l=(:dash,))
+plot!(+(yth[3:end], ysh...), subplot=1, lab="AR", l=(:dash,))
 ```
 ![window](figs/reconstruction.svg)
+
+To perform `n`-step prediction, use the function `pred`:
+```julia
+pd = pred(pd,2) # Predict two steps
+yth = trend(pd)
+ysh = seasons(pd)
+```
 ## Advanced low-level usage
 See the implementation of functions `hsvd` and `reconstruct`
 
