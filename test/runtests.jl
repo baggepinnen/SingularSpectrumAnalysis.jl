@@ -37,5 +37,5 @@ const SSA = SingularSpectrumAnalysis
     pairplot(USV, seasonal_groupings)
 end
 @testset "forecasting" begin
-    include("../examples/forecast.jl")
+    include("forecast.jl")
 end

@@ -181,10 +181,14 @@ end
 trendorder(pd) = length(pd.trend_parameters)-1
 
 trend(pd::PredictionData) = pd.trend_regressor*pd.trend_parameters
+trend(pd::PredictionData, i) = pd.trend_regressor[i,:]'*pd.trend_parameters
 seasons(pd::PredictionData) = pd.seasonal_predictions
+seasons(pd::PredictionData,i) = getindex.(pd.seasonal_predictions,i)
+Base.getindex(pd::PredictionData) = trend(pd,i), seasons(pd,i)
 
 @recipe function plotpd(pd::PredictionData)
     layout := 1+length(pd.seasonal_models)
+    legend --> false
     @series begin
         subplot := 1
         title --> "Estimated trend"
@@ -193,7 +197,7 @@ seasons(pd::PredictionData) = pd.seasonal_predictions
     for (i,s) in enumerate(pd.seasonal_predictions)
         @series begin
             subplot := 1+i
-            title --> "Estimated seasonal component $i"
+            title --> "Seasonal predictions $i"
             s
         end
     end
@@ -221,6 +225,9 @@ function __init__()
         models = [CSI.ar(1, ys[:,i], ar_order)[1] for i = 1:ns] # Fit one model per component
         # We can use these models to for one-step predictions
         seasonal_predictions = [CSI.predict(models[i], ys[:,i])  for i = 1:ns]
+        # for s in seasonal_predictions
+        #     for i = 1:ar_order insert!(s,1,0.) end
+        # end
         PredictionData(x,A,models,seasonal_predictions)
     end
 

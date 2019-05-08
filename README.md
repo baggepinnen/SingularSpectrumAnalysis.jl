@@ -98,6 +98,8 @@ pd = pred(pd,2) # Predict two steps
 yth = trend(pd)
 ysh = seasons(pd)
 ```
+The example above is implemented in `test/forecast.jl`.
+
 ## Advanced low-level usage
 See the implementation of functions `hsvd` and `reconstruct`
 
