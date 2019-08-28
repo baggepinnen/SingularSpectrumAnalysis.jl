@@ -38,7 +38,7 @@ trend = 3 # If some singular value lacks a buddy, this is a trend component
 # trend, seasonal_groupings = autogroup(USV) # This uses a heuristic
 pairplot(USV,seasonal_groupings) # plot phase plots for all seasonal components
 yrt, yrs = reconstruct(USV, trend, seasonal_groupings) # Reconstruct the underlying signal without noise, based on all identified components with significant singular values
-yr = sum([yrt yrs],2) # Form full reconstruction
+yr = sum([yrt yrs],dims = 2) # Form full reconstruction
 plot([y ys yr], lab=["y" "ys" "yr"])
 ```
 
