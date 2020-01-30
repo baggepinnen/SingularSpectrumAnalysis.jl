@@ -222,7 +222,8 @@ function __init__()
     function PredictionData(yt,ys; trend_order=1, ar_order=2)
         A,x = fit_trend(yt, trend_order)  # Fits a polynomial of order 1 (line)
         ns = size(ys,2) # number of seasonal components
-        models = [CSI.ar(1, ys[:,i], ar_order)[1] for i = 1:ns] # Fit one model per component
+        models = [CSI.ar(1, ys[:,i], ar_order, estimator=CSI.tls)[1] for i = 1:ns] # Fit one model per component
+        # models = [CSI.ar(1, ys[:,i], ar_order)[1] for i = 1:ns] # Fit one model per component
         # We can use these models to for one-step predictions
         seasonal_predictions = [CSI.predict(models[i], ys[:,i])  for i = 1:ns]
         # for s in seasonal_predictions
@@ -233,10 +234,11 @@ function __init__()
 
     function _pred(pd::PredictionData)
         A,x,ys,models = pd.trend_regressor, pd.trend_parameters, pd.seasonal_predictions, pd.seasonal_models
+        na = length(CSI.denvec(models[1])[])
         @assert size(A,1) >= 3
         @assert (ys isa AbstractVecOrMat{<:Number} && size(ys,1) >= 3) || size(ys[1],1) >= 3
         ns = length(models)
-        ysh = [CSI.predict(models[i], ys[i][end-2:end])  for i = 1:ns]
+        ysh = [CSI.predict(models[i], reverse(ys[i][end-na:end]))  for i = 1:ns]
         ysh = reduce(hcat, ysh)
         yth = A[end,:]'*x
         yth, ysh
@@ -263,10 +265,10 @@ function __init__()
         n == 0 && (return pd)
         A,x,ys,models = pd.trend_regressor, pd.trend_parameters, pd.seasonal_predictions, pd.seasonal_models
         yth, ysh = _pred(pd)
-        pd.trend_regressor = [A; (size(A,1)+1).^(0:trendorder(pd))']
         for i = eachindex(ys)
-            pd.seasonal_predictions[i] = [ys[i]; ysh[i]]
+            push!(ys[i], ysh[i])
         end
+        pd.trend_regressor = [A; (size(A,1)+1).^(0:trendorder(pd))']
         pred(pd,n-1)
     end
 end
