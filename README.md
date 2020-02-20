@@ -111,6 +111,8 @@ ŷ = unhankel(X̂)
 ```
 Where `ŷ` is a clean version of the signal. The sparse matrix `E` contains the estimated noise values. See also function `lowrankfilter` which packages this procedure.
 
+See further documentation and examples [here](https://github.com/baggepinnen/TotalLeastSquares.jl#missing-data-imputation).
+
 ## Advanced low-level usage
 See the implementation of functions `hsvd` and `reconstruct`
 
