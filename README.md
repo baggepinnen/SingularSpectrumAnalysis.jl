@@ -102,6 +102,15 @@ ysh = seasons(pd)
 ```
 The example above is implemented in [`forecast.jl`](https://github.com/baggepinnen/SingularSpectrumAnalysis.jl/blob/master/test/forecast.jl).
 
+## Missing data / outliers
+See the keyword argument `robust`. The robust estimation is handled by [TotalLeastSquares.jl](https://github.com/baggepinnen/TotalLeastSquares.jl) which performs a robust PCA of the Hankel matrix. This factorization handles large but sparse outliers very well. To indicate that a value is missing, you can set it to some large value that is very far from the other values and it will be identified as an outlier by the robust factorization. To obtain the inferred values for the missing data, call the low-level function directly
+```julia
+X = hankel(y,L) # Form trajectory matrix
+X̂, E = rpca(X)
+ŷ = unhankel(X̂)
+```
+Where `ŷ` is a clean version of the signal. The sparse matrix `E` contains the estimated noise values. See also function `lowrankfilter` which packages this procedure.
+
 ## Advanced low-level usage
 See the implementation of functions `hsvd` and `reconstruct`
 

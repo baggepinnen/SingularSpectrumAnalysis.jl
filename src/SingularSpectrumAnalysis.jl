@@ -2,7 +2,7 @@ module SingularSpectrumAnalysis
 
 using LinearAlgebra, Statistics, RecipesBase, Requires, TotalLeastSquares
 
-export hankel, hankelize, unhankel, elementary, reconstruct, hsvd, autogroup, analyze
+export hankel, hankelize, unhankel, elementary, reconstruct, hsvd, autogroup, analyze, lowrankfilter
 
 export sigmaplot, pairplot
 
