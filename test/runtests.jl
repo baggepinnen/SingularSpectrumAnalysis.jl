@@ -11,20 +11,21 @@ const SSA = SingularSpectrumAnalysis
     t = 1:N;
     T = 20;
     y = sin.(2pi/T*t);
-    y .+= (0.5sin.(2pi/T*4*t)).^2
+    y .+= (0.5sin.(2pi/T*4*t))
+    y .+ 0.01 .*(1:N)
     e = 0.1randn(N);
     yn = y+e;
     # plot(yn)
 
-    yt, ys = analyze(yn, L)
+    yt, ys = analyze(yn, L, robust=false)
     A,x = fit_trend(yt, 1)
-    @test x ≈ [0.124, 0] atol=0.1
+    @test √sum(abs2,x) < 2e-3
 
     USV = hsvd(yn,L)
 
     trend, seasonal_groupings = autogroup(USV)
-    @test trend == 3
-    @test seasonal_groupings == [1:2, 4:5]
+    @test trend == 5
+    @test seasonal_groupings == [1:2, 3:4]
 
     yrt, yrs = reconstruct(USV, trend, seasonal_groupings)
     yr = sum([yrt yrs],dims=2)
@@ -35,7 +36,69 @@ const SSA = SingularSpectrumAnalysis
     plot(USV, cumulative=true)
     plot(USV, cumulative=false)
     pairplot(USV, seasonal_groupings)
-end
-@testset "forecasting" begin
-    include("forecast.jl")
+
+
+    USV = hsvd(yn,L,robust=true)
+
+    trend, seasonal_groupings = autogroup(USV)
+    @test trend == 5
+    @test seasonal_groupings == [1:2, 3:4]
+
+
+    USV = hsvd(yn,2L,robust=true)
+
+    trend, seasonal_groupings = autogroup(USV)
+    @test trend == 5
+    @test seasonal_groupings == [1:2, 3:4]
+
+
+    @testset "With trend" begin
+        @info "Testing With trend"
+
+
+        y = sin.(2pi/T*t);
+        y .+= (0.5sin.(2pi/T*4*t))
+        y .+ 0.01 .*(1:N)
+
+        y .+= 0.001 .* (1:N)
+        e = 0.1randn(N);
+        yn = y+e;
+        # plot(yn)
+
+        yt, ys = analyze(yn, L, robust=false)
+        A,x = fit_trend(yt, 1)
+        @test x[2] ≈ 0.001 rtol = 1e-3
+
+        USV = hsvd(yn,L)
+
+        trend, seasonal_groupings = autogroup(USV)
+        @test trend == 1
+        @test seasonal_groupings == [2:3, 4:5]
+
+        yrt, yrs = reconstruct(USV, trend, seasonal_groupings)
+        yr = sum([yrt yrs],dims=2)
+        @test sqrt(mean((y.-yn).^2)) > sqrt(mean((y.-yr).^2))
+
+
+        yn[end÷2] = 10000 # introduce outlier
+
+        yt, ys = analyze(yn, L, robust=true)
+        A,x = fit_trend(yt, 1)
+        @test x[2] ≈ 0.001 rtol = 1e-1
+
+        USV = hsvd(yn,L,robust=true)
+
+        trend, seasonal_groupings = autogroup(USV)
+        @test trend == 1
+        @test seasonal_groupings == [2:3, 4:5]
+
+        yrt, yrs = reconstruct(USV, trend, seasonal_groupings)
+        yr = sum([yrt yrs],dims=2)
+        @test sqrt(mean((y.-yn).^2)) > sqrt(mean((y.-yr).^2))
+
+    end
+
+    @testset "forecasting" begin
+        include("forecast.jl")
+    end
 end

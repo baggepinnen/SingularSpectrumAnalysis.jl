@@ -18,7 +18,7 @@ ysh = seasons(pd)
 @test yth isa Vector{Float64}
 @test ysh isa Vector{<:Vector}
 @test length(yth) == N
-@test length(ysh[1]) == N-2
+@test length(ysh[1]) == N
 @test length(ysh) >= 1
 plot(pd)
 
@@ -30,7 +30,7 @@ ysh = seasons(pd)
 @test yth isa Vector{Float64}
 @test ysh isa Vector{<:Vector}
 @test length(yth) == N+2
-@test length(ysh[1]) == N
+@test length(ysh[1]) == N+2
 
 @test trend(pd,2) == trend(pd)[2]
 @test seasons(pd,2) == getindex.(seasons(pd),2)

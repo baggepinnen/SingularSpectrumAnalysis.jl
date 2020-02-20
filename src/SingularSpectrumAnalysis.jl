@@ -1,8 +1,8 @@
 module SingularSpectrumAnalysis
 
-using LinearAlgebra, Statistics, RecipesBase, Requires
+using LinearAlgebra, Statistics, RecipesBase, Requires, TotalLeastSquares
 
-export hankel, hankelize, elementary, reconstruct, hsvd, autogroup, analyze
+export hankel, hankelize, unhankel, elementary, reconstruct, hsvd, autogroup, analyze
 
 export sigmaplot, pairplot
 
@@ -48,26 +48,6 @@ end
 
 
 """
-X = hankel(x,window_size)
-Form the trajectory matrix `X` of size KxL, K = N-L+1
-x can be a vector or a matrix For multivariate SSA
-"""
-function hankel(x,L)
-    N = size(x,1)
-    D = isa(x,AbstractVector) ? 1 : size(x,2)
-    @assert L <= N/2 "L has to be less than N/2 = $(N/2)"
-    K = N-L+1
-    X = zeros(K,L*D)
-    for d = 1:D
-        for j = 1:L, i = 1:K
-            k = i+j-1
-            X[i,j+(d-1)*L] = x[k,d]
-        end
-    end
-    X
-end
-
-"""
 Ui = elementary(USV,I)
 Computes the sum Uᵢ*Sᵢ*Vᵢ' for all i in I
 If I is 1:L, the returned matrix is identical to U*S*V'
@@ -80,29 +60,17 @@ end
 means = hankelize(X)
 Computes a timeseries from an approximate Hankel matrix by diagoal averaging (Hankelization). Note that the returned value is a vector and not a hankel matrix. A hankel matrix is easily obtainable by `hankel(hankelize(X), size(X,2))`
 """
-function hankelize(X)
-    K,L = size(X)
-    @assert K >= L "The input matrix must be a tall matrix"
-    N = K+L-1
-    means = zeros(N)
-    for n = 1:N
-        if n <= K
-            rangei = n:-1:max(1,n-L+1)
-            rangej = 1:min(n,L)
-        else
-            rangei = K:-1:max(n-L+1,n-K+2)
-            rangej = n-K+1:L
-        end
-        means[n] = mean(X[rangei[k],rangej[k]] for k in eachindex(rangei))
-    end
-    means
-end
+const hankelize = unhankel
+
 """
-USV = hsvd(y,L)
+USV = hsvd(y,L;robust=false)
 Form a trajectory hankel matrix from data `y` and compute svd on this Hankelmatrix
 """
-function hsvd(y,L)
+function hsvd(y,L;robust=false)
     X = hankel(y,L) # Form trajectory matrix
+    if robust
+        X = rpca(X)[1]
+    end
     USV = svd(X)
 end
 
@@ -129,7 +97,7 @@ function reconstruct(USV, groupings::AbstractArray)
     yr = zeros(N,M)
     for m = 1:M
         X = elementary(USV,groupings[m])
-        yr[:,m] = hankelize(X)
+        yr[:,m] = unhankel(X)
     end
     yr
 end
@@ -143,7 +111,7 @@ function autogroup(USV, th = 0.95)
     nS ./= sum(nS)
     cs = cumsum(nS)
     ind = findfirst(x->x > th, cs)
-    iseven(ind) && (ind -= 1)
+    iseven(ind) && (ind += 1)
     t = findtrend(nS[1:ind])
     seasonal_groupings = UnitRange[]
     for i = [1:2:t-1; t+1:2:ind]
@@ -166,8 +134,18 @@ function findtrend(S)
     ind
 end
 
-function analyze(y,L)
-    USV = hsvd(y,L)
+
+"""
+    analyze(y, L; robust=true)
+
+Automatically analyze the given signal. `robust` indicates whether or not to use a robust decomposition resistant to outliers.
+
+#Arguments:
+- `y`: Signal
+- `L`: Lag embedding dimension (window size)
+"""
+function analyze(y,L; robust=true)
+    USV = hsvd(y,L, robust=robust)
     trend, seasonal_groupings = autogroup(USV)
     reconstruct(USV, trend, seasonal_groupings)
 end
@@ -226,9 +204,9 @@ function __init__()
         # models = [CSI.ar(1, ys[:,i], ar_order)[1] for i = 1:ns] # Fit one model per component
         # We can use these models to for one-step predictions
         seasonal_predictions = [CSI.predict(models[i], ys[:,i])  for i = 1:ns]
-        # for s in seasonal_predictions
-        #     for i = 1:ar_order insert!(s,1,0.) end
-        # end
+        for s in seasonal_predictions
+            for i = 1:ar_order insert!(s,1,0.) end
+        end
         PredictionData(x,A,models,seasonal_predictions)
     end
 

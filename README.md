@@ -20,24 +20,26 @@ e = 0.1randn(N); # Add some noise
 yn = y+e;
 # plot(ys)
 
-yt, ys = analyze(yn, L) # trend and seasonal components
+yt, ys = analyze(yn, L, robust=true) # trend and seasonal components
 plot(yt, lab="Trend")
 plot!(ys, lab="Season")
 ```
+The `robust` keyword makes the analysis robust against large, sparse outliers, at the expense of longer computational time.
+
 ## Advanced usage
 Internally a Hankel matrix is formed and the SVD of this is calculated. The singular values of the SVD can be plotted to manually determine which singular value belongs to the trend, and which pairs belong to seasonal components (these are always pairs).
 ```julia
-USV = hsvd(yn,L) # Perform svd on the trajectory matrix
+USV = hsvd(yn,L,robust=false) # Perform svd on the trajectory matrix, robust uses a robust version of svd, resistant to outliers
 plot(USV, cumulative=false) # Plot normalized singular values
 ```
 ![window](figs/sigmaplot.svg)
 
 ```julia
 seasonal_groupings = [1:2, 4:5] # Determine pairs of singular values corresponding to seasonal components
-trend = 3 # If some singular value lacks a buddy, this is a trend component
-# trend, seasonal_groupings = autogroup(USV) # This uses a heuristic
+trend_i = 3 # If some singular value lacks a buddy, this is a trend component
+# trend_i, seasonal_groupings = autogroup(USV) # This uses a heuristic
 pairplot(USV,seasonal_groupings) # plot phase plots for all seasonal components
-yrt, yrs = reconstruct(USV, trend, seasonal_groupings) # Reconstruct the underlying signal without noise, based on all identified components with significant singular values
+yrt, yrs = reconstruct(USV, trend_i, seasonal_groupings) # Reconstruct the underlying signal without noise, based on all identified components with significant singular values
 yr = sum([yrt yrs],dims = 2) # Form full reconstruction
 plot([y ys yr], lab=["y" "ys" "yr"])
 ```
@@ -86,9 +88,9 @@ plot!(yth, lab="Polyfit")
 
 ```julia
 yr = yt+sum(ys, dims=2)
-plot(yn[1:end-2], lab="Measured", title="Full reconstructions")
-plot!(yr[1:end-2], lab="SSA")
-plot!(+(yth[3:end], ysh...), subplot=1, lab="AR", l=(:dash,))
+plot(yn, lab="Measured", title="Full reconstructions")
+plot!(yr, lab="SSA")
+plot!(+(yth, ysh...), subplot=1, lab="AR", l=(:dash,))
 ```
 ![window](figs/reconstruction.svg)
 
@@ -98,7 +100,7 @@ pd = pred(pd,2) # Predict two steps
 yth = trend(pd)
 ysh = seasons(pd)
 ```
-The example above is implemented in `test/forecast.jl`.
+The example above is implemented in [`forecast.jl`](https://github.com/baggepinnen/SingularSpectrumAnalysis.jl/blob/master/test/forecast.jl).
 
 ## Advanced low-level usage
 See the implementation of functions `hsvd` and `reconstruct`
