@@ -2,7 +2,7 @@ module SingularSpectrumAnalysis
 
 using LinearAlgebra, Statistics, RecipesBase, Requires, TotalLeastSquares
 
-export hankel, hankelize, unhankel, elementary, reconstruct, hsvd, autogroup, analyze, rpca, lowrankfilter
+export hankel, hankelize, unhankel, elementary, reconstruct, hsvd, autogroup, analyze, rpca, lowrankfilter, esprit
 
 export sigmaplot, pairplot
 
@@ -20,7 +20,8 @@ end
 
 @userplot Pairplot
 """
-pairplot(USV, groupings)
+    pairplot(USV, groupings)
+
 Usage:
 ```julia
 USV = hsvd(data,L)
@@ -48,7 +49,8 @@ end
 
 
 """
-Ui = elementary(USV,I)
+    Ui = elementary(USV,I)
+
 Computes the sum Uᵢ*Sᵢ*Vᵢ' for all i in I
 If I is 1:L, the returned matrix is identical to U*S*V'
 """
@@ -57,13 +59,15 @@ function elementary(USV,I)
 end
 
 """
-means = hankelize(X)
+    means = hankelize(X)
+
 Computes a timeseries from an approximate Hankel matrix by diagoal averaging (Hankelization). Note that the returned value is a vector and not a hankel matrix. A hankel matrix is easily obtainable by `hankel(hankelize(X), size(X,2))`
 """
 const hankelize = unhankel
 
 """
-USV = hsvd(y,L;robust=false)
+    USV = hsvd(y,L;robust=false)
+
 Form a trajectory hankel matrix from data `y` and compute svd on this Hankelmatrix
 """
 function hsvd(y,L;robust=false)
@@ -75,8 +79,8 @@ function hsvd(y,L;robust=false)
 end
 
 """
-yrt,yrs = reconstruct(USV::SVD, trends, seasonal::AbstractArray)
-yr      = reconstruct(USV::SVD, groupings::AbstractArray)
+    yrt,yrs = reconstruct(USV::SVD, trends, seasonal::AbstractArray)
+    yr      = reconstruct(USV::SVD, groupings::AbstractArray)
 
 Compute a reconstruction of the time-series based on an SVD object obtained from `hsvd` and user selected groupings. See also `?SingularSpectrumAnalysis`
 """
@@ -149,6 +153,28 @@ function analyze(y,L; robust=true)
     trend, seasonal_groupings = autogroup(USV)
     reconstruct(USV, trend, seasonal_groupings)
 end
+
+"""
+    esprit(x, L, r; fs=1, robust=false)
+
+Estimate `r` frequencies present in signal `x` using a lag-correlation matrix of size `L`.
+
+R. Roy and T. Kailath, "ESPRIT-estimation of signal parameters via rotational invariance techniques," in IEEE Transactions on Acoustics, Speech, and Signal Processing, vol. 37, no. 7, pp. 984-995, Jul 1989.
+
+#Arguments:
+- `x`: Signal
+- `L`: Size of lag embedding and the covariance matrix used.
+- `r`: Number of frequencies, in contrast to `DSP.esprit`, we return `r` positive frequencies whereas `DSP.esprit` return `r÷2` positive/negative frequency pairs.
+- `fs`: Sample rate
+- `robust`: Whether or not to use a robust decomposition resistant to outliers.
+"""
+function esprit(x::AbstractArray{T}, L, r; fs=T(1), robust=false) where T
+    N = length(x)
+    USV = hsvd(x,L,robust=robust)
+    D = eigvals( USV.U[1:end-1,1:2r] \ USV.U[2:end,1:2r] )
+    fs/(2π) .* filter(x->x>0 , angle.(D))
+end
+
 
 mutable struct PredictionData
     trend_parameters

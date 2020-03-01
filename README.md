@@ -9,14 +9,14 @@ The example below creates a simulated signal that has two strong seasonal compon
 ```julia
 using SingularSpectrumAnalysis, Plots
 # generate some data
-L = 20 # Window length
-K = 100
-N = K*L; # number of datapoints
-t = 1:N; # Time vector
-T = 20; # period of main oscillation
-y = sin.(2pi/T*t); # Signal
+L   = 20                      # Window length
+K   = 100
+N   = K*L;                    # number of datapoints
+t   = 1:N;                    # Time vector
+T   = 20;                     # period of main oscillation
+y   = sin.(2pi/T*t);          # Signal
 y .+= (0.5sin.(2pi/T*4*t)).^2 # Add another frequency
-e = 0.1randn(N); # Add some noise
+e   = 0.1randn(N);            # Add some noise
 yn = y+e;
 # plot(ys)
 
@@ -25,6 +25,9 @@ plot(yt, lab="Trend")
 plot!(ys, lab="Season")
 ```
 The `robust` keyword makes the analysis robust against large, sparse outliers, at the expense of longer computational time.
+
+### ESPRIT
+- `esprit(x, L, r; fs=1, robust=false)` Estimates `r` (positive) frequencies present in signal `x` using a lag-correlation matrix of size `L`.
 
 ## Advanced usage
 Internally a Hankel matrix is formed and the SVD of this is calculated. The singular values of the SVD can be plotted to manually determine which singular value belongs to the trend, and which pairs belong to seasonal components (these are always pairs).
