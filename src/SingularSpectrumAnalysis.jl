@@ -157,7 +157,7 @@ end
 """
     esprit(x, L, r; fs=1, robust=false)
 
-Estimate `r` frequencies present in signal `x` using a lag-correlation matrix of size `L`.
+Estimate `r` (positive) frequencies present in signal `x` using a lag-correlation matrix of size `L`.
 
 R. Roy and T. Kailath, "ESPRIT-estimation of signal parameters via rotational invariance techniques," in IEEE Transactions on Acoustics, Speech, and Signal Processing, vol. 37, no. 7, pp. 984-995, Jul 1989.
 
@@ -172,7 +172,7 @@ function esprit(x::AbstractArray{T}, L, r; fs=T(1), robust=false) where T
     N = length(x)
     USV = hsvd(x,L,robust=robust)
     D = eigvals( USV.U[1:end-1,1:2r] \ USV.U[2:end,1:2r] )
-    fs/(2π) .* filter(x->x>0 , angle.(D))
+    sort(fs/(2π) .* filter(x->x>0 , angle.(D)))
 end
 
 

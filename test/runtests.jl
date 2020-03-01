@@ -105,7 +105,7 @@ const SSA = SingularSpectrumAnalysis
         t = 1:10000
         s = repeat([ones(T÷2);-ones(T÷2)],length(t)÷T) .* sin.(LinRange(0,200pi,length(t))) .|> Float32
         freqs = SingularSpectrumAnalysis.esprit(s,200T,5)
-        @test freqs ≈ [0.5, 0.31, 0.28, 0.11, 0.09] atol=0.015
+        @test freqs ≈ reverse([0.5, 0.31, 0.28, 0.11, 0.09]) atol=0.015
 
     end
 
