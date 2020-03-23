@@ -110,6 +110,7 @@ const SSA = SingularSpectrumAnalysis
     end
 
     @testset "forecasting" begin
+        @info "Testing forecasting"
         include("forecast.jl")
     end
 end
