@@ -12,6 +12,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 TotalLeastSquares = "028f657a-7ace-5159-a694-8cfd97933b0c"
 
 [compat]
+ControlSystemIdentification = "0.2"
 RecipesBase = "0.7, 0.8, 1.0"
 Requires = "0.5, 1.0"
 TotalLeastSquares = "1.3"

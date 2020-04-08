@@ -10,7 +10,7 @@ y .+= LinRange(0,1,N)         # Add trend
 e = 0.1randn(N);
 yn = y+e;                     # Add noise
 
-yt, ys = analyze(yn, L) # trend and seasons
+yt, ys = analyze(yn, 40) # trend and seasons
 @info "Loading ControlSystemIdentification"
 using ControlSystemIdentification
 pd  = PredictionData(yt,ys, trend_order=1, ar_order=2)

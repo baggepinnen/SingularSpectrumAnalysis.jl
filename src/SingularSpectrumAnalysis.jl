@@ -223,10 +223,10 @@ function __init__()
     @require ControlSystemIdentification="3abffc1c-5106-53b7-b354-a47bfc086282" begin
     CSI = ControlSystemIdentification
 
-    function PredictionData(yt,ys; trend_order=1, ar_order=2)
+    function PredictionData(yt,ys; trend_order=1, ar_order=2, estimator=CSI.ls, λ=1e-1)
         A,x = fit_trend(yt, trend_order)  # Fits a polynomial of order 1 (line)
         ns = size(ys,2) # number of seasonal components
-        models = [CSI.ar(1, ys[:,i], ar_order, estimator=CSI.tls)[1] for i = 1:ns] # Fit one model per component
+        models = [CSI.ar(CSI.iddata(ys[:,i]), ar_order, estimator=estimator, λ=λ) for i = 1:ns] # Fit one model per component
         # models = [CSI.ar(1, ys[:,i], ar_order)[1] for i = 1:ns] # Fit one model per component
         # We can use these models to for one-step predictions
         seasonal_predictions = [CSI.predict(models[i], ys[:,i])  for i = 1:ns]
@@ -238,11 +238,11 @@ function __init__()
 
     function _pred(pd::PredictionData)
         A,x,ys,models = pd.trend_regressor, pd.trend_parameters, pd.seasonal_predictions, pd.seasonal_models
-        na = length(CSI.denvec(models[1])[])
-        @assert size(A,1) >= 3
+        na = length(CSI.denvec(models[1])[])-1
+        @assert size(A,1) >= 2
         @assert (ys isa AbstractVecOrMat{<:Number} && size(ys,1) >= 3) || size(ys[1],1) >= 3
         ns = length(models)
-        ysh = [CSI.predict(models[i], reverse(ys[i][end-na:end]))  for i = 1:ns]
+        ysh = [CSI.predict(models[i], (ys[i][end-na:end]))  for i = 1:ns]
         ysh = reduce(hcat, ysh)
         yth = A[end,:]'*x
         yth, ysh
