@@ -1,5 +1,5 @@
 # SingularSpectrumAnalysis
-[![Build Status](https://travis-ci.org/baggepinnen/SingularSpectrumAnalysis.jl.svg?branch=master)](https://travis-ci.org/baggepinnen/SingularSpectrumAnalysis.jl)
+[![CI](https://github.com/baggepinnen/SingularSpectrumAnalysis.jl/workflows/CI/badge.svg)](https://github.com/baggepinnen/SingularSpectrumAnalysis.jl/actions)
 [![codecov](https://codecov.io/gh/baggepinnen/SingularSpectrumAnalysis.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/baggepinnen/SingularSpectrumAnalysis.jl)
 
 A package for performing Singular Spectrum Analysis (SSA) https://en.wikipedia.org/wiki/Singular_spectrum_analysis
