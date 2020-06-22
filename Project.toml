@@ -1,7 +1,7 @@
 name = "SingularSpectrumAnalysis"
 uuid = "77f5812f-bd1f-5f6e-9b72-07b28d8bbbc3"
 authors = ["baggepinnen <baggepinnen@gmail.com>"]
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

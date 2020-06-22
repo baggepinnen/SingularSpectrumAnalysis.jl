@@ -94,11 +94,11 @@ function reconstruct(USV, trends, seasonal::AbstractArray)
     yrt, yrs
 end
 
-function reconstruct(USV, groupings::AbstractArray)
+function reconstruct(USV::SVD{T}, groupings::AbstractArray) where T
     M = length(groupings)
     K,L = size(USV.U)
     N = K+L-1
-    yr = zeros(N,M)
+    yr = zeros(T,N,M)
     for m = 1:M
         X = elementary(USV,groupings[m])
         yr[:,m] = unhankel(X)
@@ -110,7 +110,7 @@ end
 trend, seasonal_groupings = autogroup(USV, th = 0.95)
 Try to automatically group singular values. `th ∈ (0,1)` determins the percentage of variance to explain.
 """
-function autogroup(USV, th = 0.95)
+function autogroup(USV::SVD, th = 0.95)
     nS = USV.S .- minimum(USV.S)
     nS ./= sum(nS)
     cs = cumsum(nS)
