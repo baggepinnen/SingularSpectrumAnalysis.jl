@@ -250,18 +250,20 @@ function __init__()
 
 
     """
-    pd = pred(pd::PredictionData, n=1)
+        pd = pred(pd::PredictionData, n=1)
+
     Form `n` step prediction. This requires you to have constructed a `PredictionData` object according to
     ```julia
-    yt, ys = analyze(yn, L) # trend and seasons
-    pd = fit_trend(yt, nt)  # Fits a polynomial of order nt (nt = 1 -> line)
-    na = 2 # Autoregressive order
+    yt, ys = analyze(yn, L)              # trend and seasons
+    pd     = fit_trend(yt, nt)           # Fits a polynomial of order nt (nt = 1 -> line)
+    na     = 2                           # Autoregressive order
     # Next line fits one AR model for each seasonal component
-    ns = size(ys,2) # number of seasonal components
     using ControlSystemIdentification
-    models = [ar(1, ys[:,i], na)[1] for i = 1:ns] # Fit one model per component
-    pd.seasonal_models = models
-    seasonal_predictions = [predict(models[i], ys[:,i])  for i = 1:ns]
+    ns     = size(ys,2)                  # number of seasonal components
+    d      = iddata(ys[:,i], 1)
+    models = [ar(d, na)[1] for i = 1:ns] # Fit one model per component
+    pd.seasonal_models      = models
+    seasonal_predictions    = [predict(models[i], ys[:,i]) for i = 1:ns]
     pd.seasonal_predictions = seasonal_predictions
     ```
     """
