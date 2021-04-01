@@ -155,24 +155,90 @@ function analyze(y,L; robust=true)
 end
 
 """
-    esprit(x, L, r; fs=1, robust=false)
+    F = esprit(x, L, r; fs = T(1), robust = false)
 
-Estimate `r` (positive) frequencies present in signal `x` using a lag-correlation matrix of size `L`.
+
+Estimate `r` (positive) frequencies present in signal `x` using a lag-correlation matrix of size `L`. If the signal is real, `2r` components are returned.
 
 R. Roy and T. Kailath, "ESPRIT-estimation of signal parameters via rotational invariance techniques," in IEEE Transactions on Acoustics, Speech, and Signal Processing, vol. 37, no. 7, pp. 984-995, Jul 1989.
 
-#Arguments:
+# Arguments:
 - `x`: Signal
 - `L`: Size of lag embedding and the covariance matrix used.
-- `r`: Number of frequencies, in contrast to `DSP.esprit`, we return `r` positive frequencies whereas `DSP.esprit` return `r÷2` positive/negative frequency pairs.
-- `fs`: Sample rate
+- `r`: number of frequencies to estimate. If the signal is real, the number of components will be `2r`
+- `fs`: Sampling frequency
 - `robust`: Whether or not to use a robust decomposition resistant to outliers.
+
+# Return values
+The return value is a named tuple containing the following fields
+- `f`: Frequencies in Hz (if `fs` is provided, otherwise the unit is normalized frequency).
+- `ω`: Angular frequencies
+- `f₀`: Undamped frequency
+- `ω₀`: Undamped angular frequency
+- `ζ`: Relative damping estimate
+- `D`: The eigenvalues from which other quantities are derived.
+- `d`: The viscous damping coefficient
+
+A signal with a single frequency can be reconstructed as
+```julia
+exp(-t*d)*(ks*sin(ω*t) + kc*cos(ω*t))
+```
+where `t` is time, `ks,kc` are Fourier coefficient (not estimated by esprit). To refine the estimated signal, you may try something like the following
+```julia
+fs = 1000
+N = 1000
+f = 50
+t = range(0, step=1/fs, length=N) # time vector
+x = @. exp(-t)*sin(2π*f*t) + 0.1*randn()
+xh_ = zero(x) # storage for optimization
+F = esprit(x, round(Int, (N+1)/3), 1, fs=fs) # Initial estimate
+isapprox(F.f[1], f, rtol=0.05)
+isapprox(F.d[1], 1, rtol=0.05)
+
+using Optim
+function signal_model(p, out = zeros(length(t)))
+    n_sig = length(p) ÷ 4
+    for pᵢ = Iterators.partition(p, 4)
+        ω, ks, kc, d = pᵢ
+        @. out += exp(-t*d)*(ks*sin(ω*t) + kc*cos(ω*t))
+    end
+    out
+end
+function costfun(p)
+    xh_ .= 0
+    signal_model(p, xh_)
+    sum(abs2.(x-xh_))
+end
+# initial guess on form ω, ks, kc, d
+p0 = reduce(vcat, [[F.ω[i], 1, 1, F.d[i]] for i in 1:2:length(F.f)])
+res = Optim.optimize(
+    costfun,
+    p0, 
+    BFGS(),
+    Optim.Options(
+        show_trace = true,
+        show_every = 10,
+        iterations = 10000,
+        x_tol      = 1e-6,
+    ),
+)
+plot([x signal_model(res.minimizer)])
+```
 """
 function esprit(x::AbstractArray{T}, L, r; fs=T(1), robust=false) where T
+    T <: Complex || (r *= 2)
     N = length(x)
     USV = hsvd(x,L,robust=robust)
-    D = eigvals( USV.U[1:end-1,1:2r] \ USV.U[2:end,1:2r] )
-    sort(fs/(2π) .* filter(x->x>0 , angle.(D)))
+    D = eigvals( USV.U[1:end-1,1:r] \ USV.U[2:end,1:r] )
+    C = log.(D) .* fs
+    ω₀ = abs.(C)
+    ζ = @. -cos(angle(C))
+    ω = @. sqrt(1-ζ^2)*ω₀
+    f = ω ./ 2π
+    f₀ = ω₀ ./ 2π
+    d = @. -real(C) 
+
+    (; f, ω, f₀, ω₀, ζ, D, d)
 end
 
 
