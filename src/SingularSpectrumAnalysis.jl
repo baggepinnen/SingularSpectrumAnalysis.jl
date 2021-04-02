@@ -230,6 +230,9 @@ function esprit(x::AbstractArray{T}, L, r; fs=T(1), robust=false) where T
     N = length(x)
     USV = hsvd(x,L,robust=robust)
     D = eigvals( USV.U[1:end-1,1:r] \ USV.U[2:end,1:r] )
+    if !(T <: Complex)
+        D = sort(filter(x->imag(x)>=0, D), by=angle)
+    end
     C = log.(D) .* fs
     ω₀ = abs.(C)
     ζ = @. -cos(angle(C))

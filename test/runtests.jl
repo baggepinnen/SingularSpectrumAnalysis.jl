@@ -105,8 +105,19 @@ const SSA = SingularSpectrumAnalysis
         t = 1:10000
         s = repeat([ones(T÷2);-ones(T÷2)],length(t)÷T) .* sin.(LinRange(0,200pi,length(t))) .|> Float32
         freqs = SingularSpectrumAnalysis.esprit(s,200T,5)
-        @test freqs ≈ reverse([0.5, 0.31, 0.28, 0.11, 0.09]) atol=0.015
+        @test freqs.f ≈ reverse([0.5, 0.31, 0.28, 0.11, 0.09]) atol=0.015
 
+        function signal_model(p, t)
+            ω, ks, kc, d = p
+            @. exp(-t*d)*(ks*sin(ω*t) + kc*cos(ω*t))
+        end
+        t = 0:0.01:5
+        x = signal_model([1,1,1,1], t)
+        F = SingularSpectrumAnalysis.esprit(x, round(Int, (N+1)/3), 1, fs=100) # Initial estimate
+        @test F.f[] ≈ 1/2π
+        @test F.ω[] ≈ 1
+        @test F.d[] ≈ 1
+        @test F.ζ[] ≈ 1/√2
     end
 
     @testset "forecasting" begin
