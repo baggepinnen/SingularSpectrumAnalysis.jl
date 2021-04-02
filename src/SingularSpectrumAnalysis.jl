@@ -157,15 +157,14 @@ end
 """
     F = esprit(x, L, r; fs = T(1), robust = false)
 
-
-Estimate `r` (positive) frequencies present in signal `x` using a lag-correlation matrix of size `L`. If the signal is real, `2r` components are returned.
+Estimate `r` (positive) frequencies present in signal `x` using a lag-correlation matrix of size `L`. 
 
 R. Roy and T. Kailath, "ESPRIT-estimation of signal parameters via rotational invariance techniques," in IEEE Transactions on Acoustics, Speech, and Signal Processing, vol. 37, no. 7, pp. 984-995, Jul 1989.
 
 # Arguments:
 - `x`: Signal
 - `L`: Size of lag embedding and the covariance matrix used.
-- `r`: number of frequencies to estimate. If the signal is real, the number of components will be `2r`
+- `r`: number of frequencies to estimate. If the signal is real, the number of internally estimated components will be `2r`, but only `r` components are returned due to symmetry.
 - `fs`: Sampling frequency
 - `robust`: Whether or not to use a robust decomposition resistant to outliers.
 

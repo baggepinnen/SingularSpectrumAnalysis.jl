@@ -5,7 +5,7 @@
 A package for performing Singular Spectrum Analysis (SSA) https://en.wikipedia.org/wiki/Singular_spectrum_analysis
 
 ## Simple Usage
-The example below creates a simulated signal that has two strong seasonal components. The main entry function is `analyze(y,L)` that returns the trend and seasonal components. `y` is the signal to decompose and `L` is a window length to use for the internal embedding (this should be as long as the longest expected period).
+The example below creates a simulated signal that has two strong seasonal components. The main entry function is `analyze(y,L)` that returns the trend and seasonal components. `y` is the signal to decompose and `L` is a window length to use for the internal embedding.
 ```julia
 using SingularSpectrumAnalysis, Plots
 # generate some data
