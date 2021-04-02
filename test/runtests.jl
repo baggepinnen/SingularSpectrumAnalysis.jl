@@ -113,7 +113,7 @@ const SSA = SingularSpectrumAnalysis
         end
         t = 0:0.01:5
         x = signal_model([1,1,1,1], t)
-        F = SingularSpectrumAnalysis.esprit(x, round(Int, (N+1)/3), 1, fs=100) # Initial estimate
+        F = SingularSpectrumAnalysis.esprit(x, round(Int, (length(t)+1)/3), 1, fs=100) # Initial estimate
         @test F.f[] ≈ 1/2π
         @test F.ω[] ≈ 1
         @test F.d[] ≈ 1
