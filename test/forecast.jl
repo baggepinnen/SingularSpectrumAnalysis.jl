@@ -16,6 +16,7 @@ using ControlSystemIdentification
 pd  = PredictionData(yt,ys, trend_order=1, ar_order=2)
 yth = trend(pd)
 ysh = seasons(pd)
+@test pd[1] == (yth[1], [ysh[1][1], ysh[2][1]])
 @test yth isa Vector{Float64}
 @test ysh isa Vector{<:Vector}
 @test length(yth) == N

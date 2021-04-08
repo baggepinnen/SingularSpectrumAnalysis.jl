@@ -255,8 +255,8 @@ trendorder(pd) = length(pd.trend_parameters)-1
 trend(pd::PredictionData) = pd.trend_regressor*pd.trend_parameters
 trend(pd::PredictionData, i) = pd.trend_regressor[i,:]'*pd.trend_parameters
 seasons(pd::PredictionData) = pd.seasonal_predictions
-seasons(pd::PredictionData,i) = getindex.(pd.seasonal_predictions,i)
-Base.getindex(pd::PredictionData) = trend(pd,i), seasons(pd,i)
+seasons(pd::PredictionData, i) = getindex.(pd.seasonal_predictions, i)
+Base.getindex(pd::PredictionData, i) = trend(pd, i), seasons(pd, i)
 
 @recipe function plotpd(pd::PredictionData)
     layout := 1+length(pd.seasonal_models)
