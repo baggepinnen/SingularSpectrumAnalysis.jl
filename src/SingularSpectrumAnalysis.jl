@@ -226,6 +226,10 @@ plot([x signal_model(res.minimizer)])
 """
 function esprit(x::AbstractArray{T}, L, r; fs=T(1), robust=false) where T
     T <: Complex || (r *= 2)
+    if T <: Real
+        m = mean(x)
+        abs(m) > sqrt(eps(T)) && @warn "Signal is not zero mean (mean = $m), expect poor results."
+    end
     N = length(x)
     USV = hsvd(x,L,robust=robust)
     D = eigvals( USV.U[1:end-1,1:r] \ USV.U[2:end,1:r] )
